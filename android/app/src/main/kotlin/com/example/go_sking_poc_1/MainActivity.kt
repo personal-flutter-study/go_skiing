@@ -37,10 +37,12 @@ class MainActivity : FlutterActivity() {
         val gameOver = flutterLoader.getLookupKeyForAsset("assets/audio/game_over.wav")
 
         val coinFd = assetManager.openFd(coin)
-        val jumpFd = assetManager.openFd(jump)
-
         val coinId = soundPool.load(coinFd, 0)
+        coinFd.close()
+
+        val jumpFd = assetManager.openFd(jump)
         val jumpId = soundPool.load(jumpFd, 0)
+        jumpFd.close()
 
         soundPool.setOnLoadCompleteListener { soundPool, i, i1 ->
             if (i1 == 0) {
@@ -78,6 +80,7 @@ class MainActivity : FlutterActivity() {
 
                 "start" -> {
                     val bgmFd = assetManager.openFd(bgm)
+                    mediaPlayer?.release()
                     mediaPlayer =
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                             MediaPlayer(context)
@@ -85,10 +88,10 @@ class MainActivity : FlutterActivity() {
                             MediaPlayer()
                         }
                     mediaPlayer?.setDataSource(bgmFd)
-                    mediaPlayer?.prepare()
-                    mediaPlayer?.start()
+                    bgmFd.close()
                     mediaPlayer?.isLooping = true
-                    result.success(true)
+                    mediaPlayer?.setOnPreparedListener { it.start(); result.success(true) }
+                    mediaPlayer?.prepareAsync()
                     return@setMethodCallHandler
                 }
 
@@ -119,9 +122,9 @@ class MainActivity : FlutterActivity() {
                             MediaPlayer()
                         }
                     mediaPlayer?.setDataSource(gameOverFd)
-                    mediaPlayer?.prepare()
-                    mediaPlayer?.start()
-                    result.success(true)
+                    gameOverFd.close()
+                    mediaPlayer?.setOnPreparedListener { it.start(); result.success(true) }
+                    mediaPlayer?.prepareAsync()
                     return@setMethodCallHandler
 
                 }
